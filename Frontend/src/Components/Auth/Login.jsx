@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { Link, useLocation,useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+// import { api } from '../../App';
+import axiosInstance from '../../utils/axiosConfig';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const location = useLocation();
   const successMessage = location.state?.message;
   const navigate = useNavigate();
@@ -20,15 +22,30 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     console.log('Login data:', data);
-    // Add your login API call here
     try {
-      const response = await axios.post('http://localhost:3000/api/login', data);
+      const response = await axiosInstance.post('/login', data);
       console.log('Login response:', response.data);
+         
+      const { email, username ,token} = response.data;
+      if(email){
+        console.log("emila get")
+      localStorage.setItem('email', email);
+      }
+      if(username){
+      localStorage.setItem('username', username);
+      }
+      if(token){
+        console.log(token)
       navigate('/profile');
-      // Handle successful login    
+      }
     } catch (error) {
       console.error('Login error:', error);
-      // Handle login error
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        setError(error.response.data?.message || 'Login failed');
+      } else {
+        setError('Network error. Please try again.');
+      }
     }
   };
 
@@ -43,6 +60,12 @@ const Login = () => {
         {successMessage && (
           <div className="mx-8 mt-6 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
             {successMessage}
+          </div>
+        )}
+        
+        {error && (
+          <div className="mx-8 mt-6 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+            {error}
           </div>
         )}
         

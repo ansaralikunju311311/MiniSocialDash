@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     },
     profileId: {
         type: String,
-        default: null
+        default: ''
     }
 });
 export default mongoose.model("User", userSchema);

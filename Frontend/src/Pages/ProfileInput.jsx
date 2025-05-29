@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
+// import { api } from '../App';
+import axiosInstance from '../utils/axiosConfig';
+import Cookies from 'js-cookie';
 const ProfileInput = () => {
+  const navigate = useNavigate();
   const [profileId, setProfileId] = useState('');
   const [error, setError] = useState('');
 
@@ -14,7 +18,7 @@ const ProfileInput = () => {
     return '';
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validateInput(profileId);
     if (validationError) {
@@ -22,13 +26,43 @@ const ProfileInput = () => {
       return;
     }
     
+    // Get user email from cookies
+    // const userEmail = Cookies.get('userEmail');
+    const userEmail = localStorage.getItem('email');
+    if (!userEmail) {
+      setError('User not authenticated. Please log in again.');
+      return;
+    }
+    
     console.log('Profile ID submitted:', profileId);
-    setProfileId('');
+    console.log('User email:', userEmail);
     setError('');
+    
+    try {
+      const response = await axiosInstance.post('/profile', {
+        profileId,
+        email: userEmail
+        // Email is not needed as we're using cookies for authentication
+      });
+      
+      console.log('Profile input response:', response.data);
+      setProfileId('');
+      navigate('/profile');
+    } catch (error) {
+      console.error('Error submitting profile ID:', error);
+      if (error.response) {
+        setError(error.response.data?.message || 'Failed to submit profile ID');
+      } else if (error.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('An error occurred. Please try again.');
+      }
+    }
   };
 
   const handleChange = (e) => {
     setProfileId(e.target.value);
+
     // Clear error when user starts typing
     if (error) setError('');
   };
@@ -52,13 +86,22 @@ const ProfileInput = () => {
       }}>
         <h1 style={{
           textAlign: 'center',
-          marginBottom: '1.5rem',
-          color: '#333'
-        }}>Enter Profile ID</h1>
+          marginBottom: '0.5rem',
+          color: '#333',
+          fontSize: '1.5rem',
+          fontWeight: '600'
+        }}>Welcome, {localStorage.getItem('userName') || 'User'}</h1>
         <p style={{
           textAlign: 'center',
           color: '#666',
-          marginBottom: '2rem'
+          marginBottom: '0.5rem'
+        }}>Enter Profile ID to continue</p>
+        <p style={{
+          textAlign: 'center',
+          color: '#666',
+          marginBottom: '2rem',
+          fontSize: '0.9rem',
+          opacity: 0.8
         }}>Please enter the profile ID to view or manage the profile</p>
         
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>

@@ -1,5 +1,7 @@
 import User from "../Model/userSchmea.js";
 import bcrypt from "bcryptjs";
+import { generateToken } from "../utils/jwtUtils.js";
+
 export const userLogin = async (req, res) => {
     try {
         console.log('User login attempt:', req.body);
@@ -38,11 +40,19 @@ export const userLogin = async (req, res) => {
                 errors
             });
         }
+        const token = generateToken(user);
+        res.cookie("token", token, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000 // 1 hour
+        });
         return res.status(200).json({
             success: true,
             message: 'Login successful',
             email: user.email,
             username: user.username,
+            token
         });
     } catch (error) {
         console.error('User login error:', error);
