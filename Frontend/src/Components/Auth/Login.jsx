@@ -24,7 +24,7 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:3000/api/login', data);
       console.log('Login response:', response.data);
-      navigate('/dashboard');
+      navigate('/profile');
       // Handle successful login    
     } catch (error) {
       console.error('Login error:', error);

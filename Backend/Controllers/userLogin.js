@@ -29,22 +29,20 @@ export const userLogin = async (req, res) => {
             });
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            errors.push('Invalid password');
-            return res.status(401).json({
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            errors.push('Invalid credentials');
+            return res.status(400).json({
                 success: false,
-                message: 'Invalid password',
+                message: 'Invalid credentials',
                 errors
             });
         }
-
         return res.status(200).json({
             success: true,
             message: 'Login successful',
-            user: {
-                email: user.email
-            }
+            email: user.email,
+            username: user.username,
         });
     } catch (error) {
         console.error('User login error:', error);
