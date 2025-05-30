@@ -12,10 +12,9 @@ const router = express.Router();
 router.post('/signup', userRegistration);
 router.post('/login', userLogin); 
 
-// Protected routes
-// router.use(authMiddleware);
 
-// User profile routes
+
+
 router.get('/profile', authMiddleware,  getUserProfile);
 router.post('/profile-id', authMiddleware,ProfileInput);
 router.get('/dashboard', authMiddleware, Dashboard)
