@@ -2,18 +2,14 @@ import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-// import { api } from '../../App';
-import axiosInstance from '../../utils/axiosConfig';
-
+import axios from 'axios';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const location = useLocation();
   const successMessage = location.state?.message;
   const navigate = useNavigate();
-  
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  
   const { 
     register, 
     handleSubmit, 
@@ -23,7 +19,12 @@ const Login = () => {
   const onSubmit = async (data) => {
     console.log('Login data:', data);
     try {
-      const response = await axiosInstance.post('/login', data);
+      const response = await axios.post('http://localhost:3000/api/login', data, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       console.log('Login response:', response.data);
          
       const { email, username ,token} = response.data;
@@ -36,16 +37,13 @@ const Login = () => {
       }
       if(token){
         console.log(token)
-      navigate('/profile');
+      navigate('/profile' , {replace: true});
       }
     } catch (error) {
       console.error('Login error:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        setError(error.response.data?.message || 'Login failed');
-      } else {
-        setError('Network error. Please try again.');
-      }
+      const errorMessage = error.response?.data?.message || 
+                         (error.response?.status === 401 ? 'Invalid email or password' : 'Login failed');
+      setError(errorMessage);
     }
   };
 

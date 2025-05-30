@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {useEffect} from 'react'
 // import { api } from '../App';
-import axiosInstance from '../utils/axiosConfig';
+// import axiosInstance from '../utils/axiosConfig';
 import Cookies from 'js-cookie';
+import axios from 'axios'; 
 const ProfileInput = () => {
   const navigate = useNavigate();
   const [profileId, setProfileId] = useState('');
@@ -25,10 +27,9 @@ const ProfileInput = () => {
       setError(validationError);
       return;
     }
-    
-    // Get user email from cookies
-    // const userEmail = Cookies.get('userEmail');
+   
     const userEmail = localStorage.getItem('email');
+    console.log(userEmail)
     if (!userEmail) {
       setError('User not authenticated. Please log in again.');
       return;
@@ -39,7 +40,7 @@ const ProfileInput = () => {
     setError('');
     
     try {
-      const response = await axiosInstance.post('/profile', {
+      const response = await axios.post('http://localhost:3000/api/profile', {
         profileId,
         email: userEmail
         // Email is not needed as we're using cookies for authentication
@@ -59,6 +60,54 @@ const ProfileInput = () => {
       }
     }
   };
+
+  // useEffect(() => {
+  //   const token = Cookies.get('token');
+  //   if (!token) {
+  //     navigate('/login');
+  //   }
+  //   else{
+  //     const userEmail = localStorage.getItem('email');
+  //     console.log(userEmail);
+  //     navigate('/profile');
+  //   }
+  // }, [navigate]);
+  useEffect(() => {
+    const verifyToken = async () => {
+        const token = Cookies.get('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const response = await axios.get('http://localhost:3000/api/verify-token', {
+                withCredentials: true
+            });
+
+            const userEmail = localStorage.getItem('email');
+            const username = localStorage.getItem('username');
+            if (!userEmail || !username) {
+                throw new Error('User email or username not found');
+            }
+            console.log('User email:', userEmail);
+            console.log('Username:', username);
+
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            Cookies.remove('token');
+            localStorage.removeItem('email');
+            localStorage.removeItem('username');
+            navigate('/login', { 
+                state: { 
+                    message: 'Your session has expired. Please log in again.' 
+                } 
+            });
+        }
+    };
+
+    verifyToken();
+}, [navigate]);
 
   const handleChange = (e) => {
     setProfileId(e.target.value);
@@ -90,7 +139,7 @@ const ProfileInput = () => {
           color: '#333',
           fontSize: '1.5rem',
           fontWeight: '600'
-        }}>Welcome, {localStorage.getItem('userName') || 'User'}</h1>
+        }}>Welcome, {localStorage.getItem('username') || 'User'}</h1>
         <p style={{
           textAlign: 'center',
           color: '#666',

@@ -44,8 +44,10 @@ export const userLogin = async (req, res) => {
         res.cookie("token", token, {
             httpOnly: false,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 60 * 60 * 1000 // 1 hour
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+            maxAge: 60 * 60 * 1000, // 1 hour
+            path: '/',
+            domain: process.env.NODE_ENV === "production" ? '.yourdomain.com' : 'localhost'
         });
         return res.status(200).json({
             success: true,
