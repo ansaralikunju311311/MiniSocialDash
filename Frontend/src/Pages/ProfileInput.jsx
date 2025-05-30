@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {useEffect} from 'react'
-// import { api } from '../App';
-// import axiosInstance from '../utils/axiosConfig';
 import Cookies from 'js-cookie';
-import axios from 'axios'; 
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import { FiUser, FiArrowRight, FiLoader } from 'react-icons/fi'; 
 const ProfileInput = () => {
   const navigate = useNavigate();
   const [profileId, setProfileId] = useState('');
   const [error, setError] = useState('');
-
+  const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const validateInput = (value) => {
     if (!value.trim()) return 'Profile ID is required';
     if (value.length < 3) return 'Profile ID must be at least 3 characters';
@@ -19,7 +19,6 @@ const ProfileInput = () => {
     }
     return '';
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validateInput(profileId);
@@ -34,19 +33,18 @@ const ProfileInput = () => {
       setError('User not authenticated. Please log in again.');
       return;
     }
-    
     console.log('Profile ID submitted:', profileId);
     console.log('User email:', userEmail);
     setError('');
     
+    
     try {
-      const response = await axios.post('http://localhost:3000/api/profile', {
+      const response = await axios.post('http://localhost:3000/api/profile-id', {
         profileId,
         email: userEmail
       }, {
         withCredentials: true
       });
-      
       console.log('Profile input response:', response.data);
       setProfileId('');
       // Redirect to dashboard after successful profile creation
@@ -63,53 +61,63 @@ const ProfileInput = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const token = Cookies.get('token');
-  //   if (!token) {
-  //     navigate('/login');
-  //   }
-  //   else{
-  //     const userEmail = localStorage.getItem('email');
-  //     console.log(userEmail);
-  //     navigate('/profile');
-  //   }
-  // }, [navigate]);
+  
+  const fetchUserData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get('http://localhost:3000/api/profile', {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${Cookies.get('token')}`
+        }
+      });
+      console.log("vvv",response.data)
+      setUserData(response.data.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to load user data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const verifyToken = async () => {
-        const token = Cookies.get('token');
-        if (!token) {
-            navigate('/login');
-            return;
+      const token = Cookies.get('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await axios.get('http://localhost:3000/api/verify-token', {
+          withCredentials: true
+        });
+
+        const userEmail = localStorage.getItem('email');
+        const username = localStorage.getItem('username');
+        if (!userEmail || !username) {
+          throw new Error('User email or username not found');
         }
-
-        try {
-            const response = await axios.get('http://localhost:3000/api/verify-token', {
-                withCredentials: true
-            });
-
-            const userEmail = localStorage.getItem('email');
-            const username = localStorage.getItem('username');
-            if (!userEmail || !username) {
-                throw new Error('User email or username not found');
-            }
-            console.log('User email:', userEmail);
-            console.log('Username:', username);
-
-        } catch (error) {
-            console.error('Token verification failed:', error);
-            Cookies.remove('token');
-            localStorage.removeItem('email');
-            localStorage.removeItem('username');
-            navigate('/login', { 
-                state: { 
-                    message: 'Your session has expired. Please log in again.' 
-                } 
-            });
-        }
+        
+        // Fetch user data after successful token verification
+        await fetchUserData();
+        
+      } catch (error) {
+        console.error('Token verification failed:', error);
+        Cookies.remove('token');
+        localStorage.removeItem('email');
+        localStorage.removeItem('username');
+        navigate('/login', { 
+          state: { 
+            message: 'Your session has expired. Please log in again.' 
+          } 
+        });
+      }
     };
 
     verifyToken();
-}, [navigate]);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setProfileId(e.target.value);
@@ -118,91 +126,130 @@ const ProfileInput = () => {
     if (error) setError('');
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: 'beforeChildren',
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 100 }
+    }
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      backgroundColor: '#f5f5f5'
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '500px'
-      }}>
-        <h1 style={{
-          textAlign: 'center',
-          marginBottom: '0.5rem',
-          color: '#333',
-          fontSize: '1.5rem',
-          fontWeight: '600'
-        }}>Welcome, {localStorage.getItem('username') || 'User'}</h1>
-        <p style={{
-          textAlign: 'center',
-          color: '#666',
-          marginBottom: '0.5rem'
-        }}>Enter Profile ID to continue</p>
-        <p style={{
-          textAlign: 'center',
-          color: '#666',
-          marginBottom: '2rem',
-          fontSize: '0.9rem',
-          opacity: 0.8
-        }}>Please enter the profile ID to view or manage the profile</p>
-        
-        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="text"
-              value={profileId}
-              onChange={handleChange}
-              placeholder="Enter profile ID"
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                border: `1px solid ${error ? '#ff4444' : '#ddd'}`,
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-                marginBottom: '0.5rem'
-              }}
-              autoFocus
-            />
-            {error && (
-              <p style={{
-                color: '#ff4444',
-                fontSize: '14px',
-                margin: '0.25rem 0 0',
-                textAlign: 'left'
-              }}>{error}</p>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden"
+      >
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+          <motion.div variants={itemVariants} className="flex items-center justify-center mb-2">
+            <div className="bg-white/20 p-3 rounded-full">
+              <FiUser className="w-6 h-6" />
+            </div>
+          </motion.div>
+          <motion.h1 variants={itemVariants} className="text-2xl font-bold text-center">
+            {isLoading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <FiLoader className="animate-spin" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              `Welcome, ${userData?.username || localStorage.getItem('username') || 'User'}`
             )}
+          </motion.h1>
+        </div>
+
+        {/* User Info Section */}
+        {userData && (
+          <motion.div 
+            variants={itemVariants}
+            className="p-4 bg-blue-50 border-b border-blue-100"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                  <FiUser className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">{userData.username}</p>
+                <p className="text-xs text-gray-500 truncate">{userData.email}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Form Section */}
+        <motion.div variants={itemVariants} className="p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-lg font-semibold text-gray-800">Enter Profile ID</h2>
+            <p className="mt-1 text-sm text-gray-500">Please enter the profile ID to view or manage the profile</p>
           </div>
           
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '16px',
-              backgroundColor: '#1976d2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginTop: '1rem'
-            }}
-            onMouseOver={(e) => e.target.style.opacity = '0.9'}
-            onMouseOut={(e) => e.target.style.opacity = '1'}
-          >
-            Continue
-          </button>
-        </form>
-      </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={profileId}
+                  onChange={handleChange}
+                  placeholder="e.g., johndoe123"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                  autoFocus
+                />
+              </div>
+              {error && (
+                <motion.p 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1 text-sm text-red-600"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </div>
+            
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center px-6 py-3 rounded-lg text-white font-medium ${
+                isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+              } transition-colors duration-200`}
+            >
+              {isLoading ? (
+                <>
+                  <FiLoader className="animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Continue
+                  <FiArrowRight className="ml-2" />
+                </>
+              )}
+            </motion.button>
+          </form>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
