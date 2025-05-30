@@ -19,25 +19,35 @@ const Login = () => {
   const onSubmit = async (data) => {
     console.log('Login data:', data);
     try {
-      const response = await axios.post('http://localhost:3000/api/login', data, {
+      // 1. Login the user
+      const loginResponse = await axios.post('http://localhost:3000/api/login', data, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      console.log('Login response:', response.data);
-         
-      const { email, username ,token} = response.data;
-      if(email){
-        console.log("emila get")
-      localStorage.setItem('email', email);
+      
+      console.log('Login response:', loginResponse.data);
+      
+      const { email, username, token, hasProfile } = loginResponse.data;
+      
+      // 2. Store user data in localStorage
+      if (email) {
+        localStorage.setItem('email', email);
       }
-      if(username){
-      localStorage.setItem('username', username);
+      if (username) {
+        localStorage.setItem('username', username);
       }
-      if(token){
-        console.log(token)
-      navigate('/profile' , {replace: true});
+      
+      // 3. Redirect based on profile status
+      if (token) {
+        if (hasProfile) {
+          // User has a profile, go to dashboard
+          navigate('/dashboard', { replace: true });
+        } else {
+          // No profile yet, redirect to profile creation
+          navigate('/profile', { replace: true });
+        }
       }
     } catch (error) {
       console.error('Login error:', error);

@@ -49,12 +49,17 @@ export const userLogin = async (req, res) => {
             path: '/',
             domain: process.env.NODE_ENV === "production" ? '.yourdomain.com' : 'localhost'
         });
+        
+        // Check if user has a profile
+        const hasProfile = !!user.profileId; // Assuming profileId is set when profile is created
+        
         return res.status(200).json({
             success: true,
             message: 'Login successful',
             email: user.email,
             username: user.username,
-            token
+            token,
+            hasProfile
         });
     } catch (error) {
         console.error('User login error:', error);

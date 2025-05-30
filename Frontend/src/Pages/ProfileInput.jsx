@@ -43,12 +43,14 @@ const ProfileInput = () => {
       const response = await axios.post('http://localhost:3000/api/profile', {
         profileId,
         email: userEmail
-        // Email is not needed as we're using cookies for authentication
+      }, {
+        withCredentials: true
       });
       
       console.log('Profile input response:', response.data);
       setProfileId('');
-      navigate('/profile');
+      // Redirect to dashboard after successful profile creation
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Error submitting profile ID:', error);
       if (error.response) {
