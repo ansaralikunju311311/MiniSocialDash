@@ -25,6 +25,9 @@ const SignUp = () => {
                 console.log('Submitting form data:', data);
                 const response = await axios.post("http://localhost:3000/api/signup", data);
                 console.log('Server response:', response.data);
+                reset();
+                toast.success('Signup successful');
+                navigate('/login');
             } catch (error) {
                 console.error('Error during signup:', error);
                 
@@ -34,13 +37,12 @@ const SignUp = () => {
                     toast.error(error.response.data.message);
                 } else if (error.request) {
                     console.error('No response received:', error.request);
+                    toast.error('No response from server. Please try again.');
                 } else {
                     console.error('Error:', error.message);
+                    toast.error('An unexpected error occurred');
                 }
             }
-            reset() 
-            navigate('/login')
-            toast.success('Signup successful');
         })}>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
