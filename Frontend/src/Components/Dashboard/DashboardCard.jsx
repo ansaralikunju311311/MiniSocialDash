@@ -1,34 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const DashboardCard = () => {
+const DashboardCard = ({ userData }) => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/dashboard', {
-          withCredentials: true
-        });
-        console.log("debug",response.data)
-        setUserData(response.data.data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        setError('Failed to load user data');
-        toast.error('Failed to load user data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   const handleLogout = () => {
     // Clear all auth data
@@ -37,8 +14,14 @@ const DashboardCard = () => {
     localStorage.removeItem('username');
     // Redirect to login
     navigate('/login');
-    toast.error('Logout successful');
+    toast.success('Logged out successfully');
   };
+
+  useEffect(() => {
+    if (userData) {
+      setLoading(false);
+    }
+  }, [userData]);
 
   if (loading) {
     return (
@@ -48,17 +31,12 @@ const DashboardCard = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500">{error}</div>
-      </div>
-    );
+  if (!userData) {
+    return <div>No user data available</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -71,7 +49,6 @@ const DashboardCard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -88,7 +65,6 @@ const DashboardCard = () => {
                 <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt className="text-sm font-medium text-gray-500">Email address</dt>
                   <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  
                     {userData?.email || 'N/A'}
                   </dd>
                 </div>
