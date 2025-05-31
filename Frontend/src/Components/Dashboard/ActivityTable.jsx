@@ -1,7 +1,6 @@
 import React from 'react';
 import { FiClock, FiUserCheck, FiUserPlus, FiAlertCircle } from 'react-icons/fi';
 
-// Mock data for connection logs
 const mockConnectionLogs = [
   { 
     id: 1, 
@@ -84,7 +83,6 @@ const StatusBadge = ({ status }) => {
 };
 
 const ActivityTable = () => {
-  // Stats data
   const stats = [
     { name: 'Total Connections', value: '1,234', change: '+12%', changeType: 'increase' },
     { name: 'Pending Requests', value: '24', change: '+4', changeType: 'increase' },

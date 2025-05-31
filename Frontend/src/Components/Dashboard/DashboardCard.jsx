@@ -8,11 +8,9 @@ const DashboardCard = ({ userData }) => {
   const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
-    // Clear all auth data
     Cookies.remove('token');
     localStorage.removeItem('email');
     localStorage.removeItem('username');
-    // Redirect to login
     navigate('/login');
     toast.success('Logged out successfully');
   };

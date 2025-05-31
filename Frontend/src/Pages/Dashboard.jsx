@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardCard from '../Components/Dashboard/DashboardCard';
 import ActivityTable from '../Components/Dashboard/ActivityTable';
 import axios from 'axios';
+import { FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +28,11 @@ const Dashboard = () => {
           navigate('/login');
           return;
         }
+        if(!data.profileId){
+          navigate('/profile');
+          
+        }
+        setLoading(true);
         setUserData(data);
         
       } catch (error) {
@@ -45,8 +51,12 @@ const Dashboard = () => {
 
 
 
-  
-  if (loading) return <div>Loading...</div>;
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen">
+      <FaSpinner className="animate-spin h-12 w-12 text-blue-500" />
+    </div>
+  );
   if (error) return <div>Error: {error}</div>;
 
   return (

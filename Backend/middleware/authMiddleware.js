@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-// import { verifyToken } from "../utils/jwtUtils.js";
 import dotenv from "dotenv";
 dotenv.config();
 

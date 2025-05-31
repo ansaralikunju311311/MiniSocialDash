@@ -45,18 +45,36 @@ const SignUp = () => {
             }
         })}>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FaUser className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-             {...register("username", { required: true, minLength: 3 })} 
-            />
-            {errors.username && <p className="text-red-500 mt-1">Username is required and must be at least 3 characters long</p>}
-          </div>
+  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <FaUser className="text-gray-400" />
+  </div>
+  <input
+    type="text"
+    name="username"
+    placeholder="Username"
+    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+    {...register("username", { 
+      required: "Username is required",
+      minLength: {
+        value: 6,
+        message: "Must be at least 6 characters"
+      },
+      pattern: {
+        value: /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9_]+$/,
+        message: "Must contain letters, numbers and _ only"
+      },
+      validate: {
+        noSpaces: v => !/\s/.test(v) || "No spaces allowed",
+        hasLetter: v => /[a-zA-Z]/.test(v) || "Must contain at least one letter",
+        hasNumber: v => /\d/.test(v) || "Must contain at least one number"
+      },
+      setValueAs: v => v.trim()
+    })} 
+  />
+  {errors.username && (
+    <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
+  )}
+</div>
           
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

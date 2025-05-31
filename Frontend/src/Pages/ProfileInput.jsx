@@ -50,8 +50,8 @@ const ProfileInput = () => {
     } catch (error) {
       console.error('Error submitting profile ID:', error);
       if (error.response) {
-        setError(error.response.data?.message || 'Failed to submit profile ID');
-        toast.error(error.response.data?.message || 'Failed to submit profile ID');
+        setError(error.response.data?.message);
+        toast.error(error.response.data?.message);
       } else if (error.request) {
         setError('Network error. Please check your connection.');
         toast.error('Network error. Please check your connection.');
