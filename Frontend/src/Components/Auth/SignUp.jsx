@@ -3,6 +3,8 @@ import axios from 'axios';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link,useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,14 +31,16 @@ const SignUp = () => {
                 if (error.response) {
                     console.error('Response data:', error.response.data);
                     console.error('Response status:', error.response.status);
+                    toast.error(error.response.data.message);
                 } else if (error.request) {
                     console.error('No response received:', error.request);
                 } else {
                     console.error('Error:', error.message);
                 }
             }
-            reset()
+            reset() 
             navigate('/login')
+            toast.success('Signup successful');
         })}>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

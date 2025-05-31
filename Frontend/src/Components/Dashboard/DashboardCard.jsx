@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const DashboardCard = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const DashboardCard = () => {
       } catch (error) {
         console.error('Error fetching user data:', error);
         setError('Failed to load user data');
+        toast.error('Failed to load user data');
       } finally {
         setLoading(false);
       }
@@ -35,6 +37,7 @@ const DashboardCard = () => {
     localStorage.removeItem('username');
     // Redirect to login
     navigate('/login');
+    toast.error('Logout successful');
   };
 
   if (loading) {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +20,6 @@ const Login = () => {
   const onSubmit = async (data) => {
     console.log('Login data:', data);
     try {
-      // 1. Login the user
       const loginResponse = await axios.post('http://localhost:3000/api/login', data, {
         withCredentials: true,
         headers: {
@@ -39,14 +39,13 @@ const Login = () => {
         localStorage.setItem('username', username);
       }
       
-      // 3. Redirect based on profile status
       if (token) {
         if (hasProfile) {
-          // User has a profile, go to dashboard
           navigate('/dashboard', { replace: true });
+          toast.success('Login successful');
         } else {
-          // No profile yet, redirect to profile creation
           navigate('/profile', { replace: true });
+          toast.success('Profile created successfully');
         }
       }
     } catch (error) {
@@ -54,6 +53,7 @@ const Login = () => {
       const errorMessage = error.response?.data?.message || 
                          (error.response?.status === 401 ? 'Invalid email or password' : 'Login failed');
       setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

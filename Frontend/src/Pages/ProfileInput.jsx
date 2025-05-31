@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { FiUser, FiArrowRight, FiLoader } from 'react-icons/fi'; 
 const ProfileInput = () => {
@@ -26,7 +27,6 @@ const ProfileInput = () => {
       setError(validationError);
       return;
     }
-   
     const userEmail = localStorage.getItem('email');
     console.log(userEmail)
     if (!userEmail) {
@@ -36,8 +36,6 @@ const ProfileInput = () => {
     console.log('Profile ID submitted:', profileId);
     console.log('User email:', userEmail);
     setError('');
-    
-    
     try {
       const response = await axios.post('http://localhost:3000/api/profile-id', {
         profileId,
@@ -47,21 +45,22 @@ const ProfileInput = () => {
       });
       console.log('Profile input response:', response.data);
       setProfileId('');
-      // Redirect to dashboard after successful profile creation
       navigate('/dashboard', { replace: true });
+      toast.success('Profile ID submitted successfully');
     } catch (error) {
       console.error('Error submitting profile ID:', error);
       if (error.response) {
         setError(error.response.data?.message || 'Failed to submit profile ID');
+        toast.error(error.response.data?.message || 'Failed to submit profile ID');
       } else if (error.request) {
         setError('Network error. Please check your connection.');
+        toast.error('Network error. Please check your connection.');
       } else {
         setError('An error occurred. Please try again.');
+        toast.error('An error occurred. Please try again.');
       }
     }
   };
-
-  
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
@@ -76,19 +75,19 @@ const ProfileInput = () => {
     } catch (error) {
       console.error('Error fetching user data:', error);
       setError('Failed to load user data');
-    } finally {
+      toast.error('Failed to load user data');
+      } finally {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     const verifyToken = async () => {
       const token = Cookies.get('token');
       if (!token) {
         navigate('/login');
+        toast.error('User not authenticated. Please log in again.');
         return;
       }
-
       try {
         const response = await axios.get('http://localhost:3000/api/verify-token', {
           withCredentials: true
@@ -99,15 +98,13 @@ const ProfileInput = () => {
         if (!userEmail || !username) {
           throw new Error('User email or username not found');
         }
-        
-        // Fetch user data after successful token verification
         await fetchUserData();
-        
       } catch (error) {
         console.error('Token verification failed:', error);
         Cookies.remove('token');
         localStorage.removeItem('email');
         localStorage.removeItem('username');
+        toast.error('Your session has expired. Please log in again.');
         navigate('/login', { 
           state: { 
             message: 'Your session has expired. Please log in again.' 
@@ -122,11 +119,9 @@ const ProfileInput = () => {
   const handleChange = (e) => {
     setProfileId(e.target.value);
 
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -146,7 +141,6 @@ const ProfileInput = () => {
       transition: { type: 'spring', stiffness: 100 }
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
       <motion.div 
@@ -155,7 +149,6 @@ const ProfileInput = () => {
         variants={containerVariants}
         className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden"
       >
-        {/* Header Section */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
           <motion.div variants={itemVariants} className="flex items-center justify-center mb-2">
             <div className="bg-white/20 p-3 rounded-full">
@@ -174,7 +167,6 @@ const ProfileInput = () => {
           </motion.h1>
         </div>
 
-        {/* User Info Section */}
         {userData && (
           <motion.div 
             variants={itemVariants}
@@ -193,8 +185,6 @@ const ProfileInput = () => {
             </div>
           </motion.div>
         )}
-
-        {/* Form Section */}
         <motion.div variants={itemVariants} className="p-6">
           <div className="text-center mb-6">
             <h2 className="text-lg font-semibold text-gray-800">Enter Profile ID</h2>

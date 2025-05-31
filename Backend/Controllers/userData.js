@@ -2,7 +2,6 @@ import User from "../Model/userSchmea.js";
 
 export const getUserProfile = async (req, res) => {
     try {
-        // The user is already attached to the request by the authMiddleware
         const user = await User.findById(req.user.userId).select('-password');
         
 
